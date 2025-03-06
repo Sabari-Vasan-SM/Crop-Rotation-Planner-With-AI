@@ -1,0 +1,448 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Rotation Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            background-image: url('https://images.prismic.io//intuzwebsite/ee51a4e5-4769-4a1b-b4a4-ce1ae93731a5_Banner%402x.png?w=2400&q=80&auto=format,compress&fm=png8');
+            font-family: 'Arial', sans-serif;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background 0.5s ease-in-out;
+        }
+        .container {
+            max-width: 900px;
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            background-color: white;
+            transition: transform 0.4s, box-shadow 0.4s;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+        .card-title {
+            color: #000000;
+        }
+        .card-text {
+            color: #000000;
+        }
+        .list-group-item {
+            background-color: #f0f2f5;
+        }
+        .list-group-item strong {
+            color: #0a0a0a;
+        }
+        .list-group-item span {
+            color: #202020;
+        }
+        canvas {
+            max-height: 250px;
+        }
+        .text-success {
+            color: #006f1a !important;
+        }
+        .text-primary {
+            color: #000000 !important;
+        }
+        .text-muted {
+            color: #6c757d !important;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container mt-5">
+        <h2 class="text-center text-success">Crop Rotation Planner</h2>
+
+        <div class="card mt-4">
+            <div class="mb-3">
+                <label for="cropSelection" class="form-label fw-bold">Select a Crop</label>
+                <select id="cropSelection" class="form-control" onchange="showCropDetails()">
+                    <option value="">--Select Crop--</option>
+                    <option value="Maize">🌽 Maize</option>
+                    <option value="Chickpea">🌱 Chickpea</option>
+                    <option value="Kidney Beans">🫘 Kidney Beans</option>
+                    <option value="Pigeon Peas">🌿 Pigeon Peas</option>
+                    <option value="Moth Beans">🌾 Moth Beans</option>
+                    <option value="Mung Bean">🌱 Mung Bean</option>
+                    <option value="Black Gram">🌑 Black Gram</option>
+                    <option value="Lentil">🥣 Lentil</option>
+                    <option value="Pomegranate">🍎 Pomegranate</option>
+                    <option value="Banana">🍌 Banana</option>
+                    <option value="Mango">🥭 Mango</option>
+                    <option value="Grapes">🍇 Grapes</option>
+                    <option value="Watermelon">🍉 Watermelon</option>
+                    <option value="Muskmelon">🍈 Muskmelon</option>
+                    <option value="Apple">🍏 Apple</option>
+                    <option value="Orange">🍊 Orange</option>
+                    <option value="Papaya">🥭 Papaya</option>
+                    <option value="Coconut">🥥 Coconut</option>
+                    <option value="Rice">🌾 Rice</option>
+                    <option value="Cotton">🌿 Cotton</option>
+                    <option value="Jute">🧵 Jute</option>
+                    <option value="Coffee">☕ Coffee</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="cropDetails" class="card mt-4" style="display: none;">
+            <h4 id="cropTitle" class="text-center text-primary"></h4>
+            <p id="cropInfo" class="text-muted"></p>
+
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Soil Type:</strong> <span id="soilType"></span></li>
+                <li class="list-group-item"><strong>Water Requirement:</strong> <span id="waterRequirement"></span></li>
+                <li class="list-group-item"><strong>Optimal Temperature:</strong> <span id="temperatureRange"></span>°C</li>
+                <li class="list-group-item"><strong>Recommended Next Crop:</strong> <span id="nextCrop"></span></li>
+                <li class="list-group-item"><strong>Time Duration Before Next Crop:</strong> <span id="timeDuration"></span> months</li>
+                <li class="list-group-item"><strong>Alternative Crop Recommendations:</strong> <span id="alternativeCrops"></span></li>
+                <li class="list-group-item"><strong>Companion Crop Recommendations:</strong> <span id="companion"></span></li>
+                <li class="list-group-item"><strong>Yield Percentage:</strong> <span id="yieldPercentage"></span>%</li>
+            </ul>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5 class="text-center">Yield Comparison</h5>
+                    <canvas id="barChart"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-center">Soil Nutrient Balance</h5>
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+            const cropData = {
+    "Rice": {
+        "info": "Rice requires high water availability and warm temperatures.",
+        "next": "Legumes",
+        "yield": 80,
+        "soil": "Clayey",
+        "water": "High",
+        "temperature": "20-35",
+        "time": 4,
+        "alternatives": ["Wheat", "Barley"],
+        "companion": "Azolla",
+        "nutrients": [50, 30, 20]
+    },
+    "Orange": {
+        "info": "Orange trees grow best in warm, subtropical to tropical climates with well-drained soil.",
+        "next": "Legumes",
+        "yield": 50,
+        "soil": "Sandy Loam",
+        "water": "Medium",
+        "temperature": "15-30",
+        "time": 8,
+        "alternatives": ["Lemon", "Mango"],
+        "companion": "Basil",
+        "nutrients": [30, 40, 30]
+    },
+    "Papaya": {
+        "info": "Papaya prefers warm temperatures, well-drained soil, and good sunlight exposure.",
+        "next": "Leafy Greens",
+        "yield": 70,
+        "soil": "Loamy",
+        "water": "Medium-High",
+        "temperature": "22-32",
+        "time": 6,
+        "alternatives": ["Banana", "Pineapple"],
+        "companion": "Marigold",
+        "nutrients": [35, 40, 25]
+    },
+    "Coffee": {
+        "info": "Coffee grows best in cool, tropical highlands with rich, well-drained soil.",
+        "next": "Legumes",
+        "yield": 45,
+        "soil": "Volcanic Loam",
+        "water": "High",
+        "temperature": "15-28",
+        "time": 12,
+        "alternatives": ["Cocoa", "Tea"],
+        "companion": "Chili",
+        "nutrients": [50, 30, 20]
+    },
+    "Maize": {
+        "info": "Maize requires well-drained soil and moderate rainfall.",
+        "next": "Legumes",
+        "yield": 70,
+        "soil": "Loamy",
+        "water": "Medium",
+        "temperature": "18-30",
+        "time": 3,
+        "alternatives": ["Barley", "Sorghum"],
+        "companion": "Mung Bean",
+        "nutrients": [40, 35, 25]
+    },
+    "Chickpea": {
+        "info": "Chickpea grows well in dry, well-drained soil with low moisture.",
+        "next": "Wheat",
+        "yield": 55,
+        "soil": "Sandy Loam",
+        "water": "Low",
+        "temperature": "10-25",
+        "time": 2,
+        "alternatives": ["Lentil", "Pigeon Peas"],
+        "companion": "Pigeon Peas",
+        "nutrients": [30, 40, 30]
+    },
+    "Kidney beans": {
+        "info": "Kidney beans require warm temperatures and moderate water supply.",
+        "next": "Cereal Crops",
+        "yield": 60,
+        "soil": "Loamy",
+        "water": "Medium",
+        "temperature": "15-30",
+        "time": 3,
+        "alternatives": ["Black Gram", "Lentil"],
+        "companion": "Maize",
+        "nutrients": [35, 40, 25]
+    },
+    "Pigeon peas": {
+        "info": "Pigeon peas grow well in semi-arid regions with minimal water requirements.",
+        "next": "Cereals",
+        "yield": 50,
+        "soil": "Sandy Loam",
+        "water": "Low",
+        "temperature": "15-35",
+        "time": 4,
+        "alternatives": ["Chickpea", "Lentil"],
+        "companion": "Sorghum",
+        "nutrients": [30, 45, 25]
+    },
+    "Moth beans": {
+        "info": "Moth beans are drought-resistant and suitable for arid regions.",
+        "next": "Maize",
+        "yield": 45,
+        "soil": "Sandy",
+        "water": "Low",
+        "temperature": "20-35",
+        "time": 2,
+        "alternatives": ["Cowpea", "Lentil"],
+        "companion": "Sorghum",
+        "nutrients": [25, 40, 35]
+    },
+    "Mung bean": {
+        "info": "Mung beans fix nitrogen and improve soil fertility.",
+        "next": "Cereals",
+        "yield": 55,
+        "soil": "Loamy",
+        "water": "Low",
+        "temperature": "15-35",
+        "time": 2,
+        "alternatives": ["Lentil", "Chickpea"],
+        "companion": "Maize",
+        "nutrients": [35, 40, 25]
+    },
+    "Black gram": {
+        "info": "Black gram is a nitrogen-fixing crop, beneficial for soil enrichment.",
+        "next": "Cereal Crops",
+        "yield": 50,
+        "soil": "Sandy Loam",
+        "water": "Medium",
+        "temperature": "20-30",
+        "time": 2,
+        "alternatives": ["Kidney Beans", "Chickpea"],
+        "companion": "Maize",
+        "nutrients": [40, 35, 25]
+    },
+    "Lentil": {
+        "info": "Lentils grow well in cool temperatures and well-drained soil.",
+        "next": "Wheat",
+        "yield": 60,
+        "soil": "Loamy",
+        "water": "Low",
+        "temperature": "10-25",
+        "time": 3,
+        "alternatives": ["Chickpea", "Pigeon Peas"],
+        "companion": "Barley",
+        "nutrients": [35, 40, 25]
+    },
+    "Pomegranate": {
+        "info": "Pomegranates require well-drained soil and moderate water.",
+        "next": "Legumes",
+        "yield": 75,
+        "soil": "Sandy Loam",
+        "water": "Medium",
+        "temperature": "15-35",
+        "time": 5,
+        "alternatives": ["Grapes", "Mango"],
+        "companion": "Marigold",
+        "nutrients": [30, 40, 30]
+    },
+    "Banana": {
+        "info": "Bananas require high humidity and rich, fertile soil.",
+        "next": "Legumes",
+        "yield": 90,
+        "soil": "Clay Loam",
+        "water": "High",
+        "temperature": "25-35",
+        "time": 6,
+        "alternatives": ["Mango", "Papaya"],
+        "companion": "Coconut",
+        "nutrients": [50, 30, 20]
+    },
+    "Mango": {
+        "info": "Mango trees require warm temperatures and deep, well-drained soil.",
+        "next": "Legumes",
+        "yield": 85,
+        "soil": "Loamy",
+        "water": "Medium",
+        "temperature": "20-35",
+        "time": 7,
+        "alternatives": ["Pomegranate", "Banana"],
+        "companion": "Lemon",
+        "nutrients": [35, 40, 25]
+    },
+    "Grapes": {
+        "info": "Grapes thrive in well-drained soil with moderate water supply.",
+        "next": "Legumes",
+        "yield": 70,
+        "soil": "Loamy",
+        "water": "Medium",
+        "temperature": "15-30",
+        "time": 5,
+        "alternatives": ["Pomegranate", "Apple"],
+        "companion": "Olive",
+        "nutrients": [40, 30, 30]
+    },
+    "Watermelon": {
+        "info": "Watermelons need warm temperatures and sandy or loamy soil.",
+        "next": "Cereal Crops",
+        "yield": 80,
+        "soil": "Sandy Loam",
+        "water": "Medium-High",
+        "temperature": "20-35",
+        "time": 4,
+        "alternatives": ["Muskmelon", "Pumpkin"],
+        "companion": "Corn",
+        "nutrients": [35, 35, 30]
+    },
+    "Muskmelon": {
+        "info": "Muskmelons grow best in warm climates and sandy soil with good drainage.",
+        "next": "Legumes",
+        "yield": 75,
+        "soil": "Sandy Loam",
+        "water": "Medium",
+        "temperature": "20-35",
+        "time": 4,
+        "alternatives": ["Watermelon", "Cucumber"],
+        "companion": "Radish",
+        "nutrients": [30, 40, 30]
+    },
+    "Coconut": {
+        "info": "Coconuts require high humidity, sandy soil, and coastal conditions.",
+        "next": "Legumes",
+        "yield": 100,
+        "soil": "Sandy Loam",
+        "water": "High",
+        "temperature": "25-35",
+        "time": 12,
+        "alternatives": ["Palm", "Banana"],
+        "companion": "Pineapple",
+        "nutrients": [50, 30, 20]
+    },
+    "Cotton": {
+        "info": "Cotton grows well in black soil with adequate irrigation.",
+        "next": "Pulses",
+        "yield": 60,
+        "soil": "Black Soil",
+        "water": "Medium",
+        "temperature": "25-35",
+        "time": 6,
+        "alternatives": ["Jute", "Sunflower"],
+        "companion": "Peanut",
+        "nutrients": [20, 40, 40]
+    },
+    "Jute": {
+        "info": "Jute thrives in warm, humid conditions and well-drained soil.",
+        "next": "Paddy",
+        "yield": 95,
+        "soil": "Alluvial",
+        "water": "High",
+        "temperature": "25-35",
+        "time": 5,
+        "alternatives": ["Cotton", "Flax"],
+        "companion": "Rice",
+        "nutrients": [30, 40, 30]
+    }
+
+
+
+};
+
+        function showCropDetails() {
+            const selectedCrop = document.getElementById("cropSelection").value;
+            if (!selectedCrop) return;
+
+            const crop = cropData[selectedCrop];
+
+            document.getElementById("cropDetails").style.display = "block";
+            document.getElementById("cropTitle").innerText = selectedCrop;
+            document.getElementById("cropInfo").innerText = crop.info;
+            document.getElementById("nextCrop").innerText = crop.next;
+            document.getElementById("yieldPercentage").innerText = crop.yield;
+            document.getElementById("soilType").innerText = crop.soil;
+            document.getElementById("waterRequirement").innerText = crop.water;
+            document.getElementById("temperatureRange").innerText = crop.temperature;
+            document.getElementById("timeDuration").innerText = crop.time;
+            document.getElementById("alternativeCrops").innerText = crop.alternatives.join(", ");
+            document.getElementById("companion").innerText = crop.companion;
+
+            showBarChart(selectedCrop, crop.yield);
+            showPieChart(crop.nutrients);
+        }
+
+        function showBarChart(crop, yieldValue) {
+            const ctx = document.getElementById("barChart").getContext("2d");
+            if (window.barChart instanceof Chart) {
+                window.barChart.destroy();
+            }
+            window.barChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: [crop],
+                    datasets: [{
+                        label: "Yield (kg/ha)",
+                        data: [yieldValue],
+                        backgroundColor: "rgba(75, 192, 192, 0.6)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function showPieChart(nutrients) {
+            const ctx = document.getElementById("pieChart").getContext("2d");
+            if (window.pieChart instanceof Chart) {
+                window.pieChart.destroy();
+            }
+            window.pieChart = new Chart(ctx, {
+                type: "pie",
+                data: {
+                    labels: ["Nitrogen", "Phosphorus", "Potassium"],
+                    datasets: [{
+                        data: nutrients, 
+                        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"]
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+    </script>
+</body>
+</html>

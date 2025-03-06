@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Rotation Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <style>
+       /* Navbar Styling */
+.navbar {
+    background: linear-gradient(135deg, #4CAF50, #2E8B57);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    animation: slideIn 0.6s ease-out;
+}
+
+/* Navbar Links */
+.navbar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    font-size: 18px;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover Effect */
+.navbar a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    transform: scale(1);
+}
+
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+/* Adjustments for the body to prevent overlap */
+body {
+    padding-top: 70px;
+    font-family: "Poppins", sans-serif;
+    background-color: #f4f4f4;
+}
+
+/* Slide-in Animation */
+@keyframes slideIn {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="logo">
+            <a href="#">🌱 Crop Planner</a>
+        </div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+
+            <a href="{{ url_for('cropr') }}">Recommendations</a>
+            <a href="{{ url_for('guide') }}">Crop guide</a>
+            
+
+            
+        </div>
+    </div>
+
+    <div class="card">
+        <h1>🌱 Crop Rotation Planner</h1>
+
+        <label>Enter City for Weather Data:</label>
+        <input type="text" id="city" placeholder="Enter city name">
+        <button onclick="fetchWeather()">🌤 Get Weather</button>
+
+        <div id="weather-info"></div>
+
+        <form id="crop-form">
+            <label>Nitrogen:</label>
+            <input type="number" id="nitrogen" name="nitrogen" required>
+
+            <label>Phosphorus:</label>
+            <input type="number" id="phosphorus" name="phosphorus" required>
+
+            <label>Potassium:</label>
+            <input type="number" id="potassium" name="potassium" required>
+
+            <label>Temperature (°C):</label>
+            <input type="number" id="temperature" name="temperature" step="0">
+
+            <label>Humidity (%):</label>
+            <input type="number" id="humidity" name="humidity" required>
+
+            <label>pH:</label>
+            <input type="number" id="ph" name="ph" required>
+
+            <label>Rainfall (mm):</label>
+            <input type="number" id="rainfall" name="rainfall" required>
+
+            <button type="submit">🌾 Recommend Crop</button>
+            <br><br><br>
+            <button class="recommend-btn" onclick="window.location.href='{{ url_for('cropr') }}'">Get Recommendations</button>
+
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+</body>
+</html>
